@@ -6,7 +6,17 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from metrics import confusion, report  # noqa: E402
-from nb import NaiveBayes  # noqa: E402
+from nb import NaiveBayes, tokenize  # noqa: E402
+
+
+class TokenizeTest(unittest.TestCase):
+    def test_lower_and_punct(self):
+        self.assertEqual(tokenize("Hello, WORLD!!"), ["hello", "world"])
+
+    def test_numbers_collapsed(self):
+        self.assertEqual(tokenize("call 09061701461 now"), ["call", "<num>", "now"])
+        # short numbers stay as they are
+        self.assertEqual(tokenize("at 7"), ["at", "7"])
 
 
 class NaiveBayesTest(unittest.TestCase):
@@ -17,7 +27,7 @@ class NaiveBayesTest(unittest.TestCase):
 
     def test_predict(self):
         self.assertEqual(self.m.predict_one("free cash prize"), "spam")
-        self.assertEqual(self.m.predict_one("lunch at noon"), "ham")
+        self.assertEqual(self.m.predict_one("lunch?"), "ham")
 
     def test_word_probs_sum_to_one(self):
         for c in self.m.classes:
@@ -27,6 +37,10 @@ class NaiveBayesTest(unittest.TestCase):
     def test_unknown_words_fall_back_to_prior(self):
         s = self.m.scores("zzz qqq")
         self.assertAlmostEqual(s["spam"], math.log(0.5))
+
+    def test_bad_alpha(self):
+        with self.assertRaises(ValueError):
+            NaiveBayes(alpha=0)
 
 
 class MetricsTest(unittest.TestCase):
