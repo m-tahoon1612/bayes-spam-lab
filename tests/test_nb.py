@@ -5,6 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from data import load_tsv, stratified_split  # noqa: E402
 from metrics import confusion, report  # noqa: E402
 from nb import NaiveBayes, tokenize  # noqa: E402
 
@@ -56,6 +57,16 @@ class MetricsTest(unittest.TestCase):
     def test_no_positive_predictions(self):
         r = report(["spam", "ham"], ["ham", "ham"])
         self.assertEqual(r["precision"], 0.0)
+
+
+class DataTest(unittest.TestCase):
+    def test_split_is_stratified_and_disjoint(self):
+        path = os.path.join(os.path.dirname(__file__), "..", "data", "messages.tsv")
+        docs, labels = load_tsv(path)
+        train, test = stratified_split(docs, labels, 0.25, seed=1)
+        self.assertEqual(len(train) + len(test), len(docs))
+        spam_test = sum(1 for _, l in test if l == "spam")
+        self.assertEqual(spam_test, round(labels.count("spam") * 0.25))
 
 
 if __name__ == "__main__":
