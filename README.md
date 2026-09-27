@@ -5,7 +5,7 @@ Python for the probabilistic / generative models part of my master's (DS & AI,
 started Sep 2026). Mostly study notes so I actually get the maths.
 
 No sklearn on purpose, the point was to write the counting and the log
-probabilites myself.
+probabilities myself.
 
 ## what's here
 
