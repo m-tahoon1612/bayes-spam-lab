@@ -8,7 +8,7 @@ import math
 import re
 from collections import Counter
 
-_TOKEN = re.compile(r"[a-z0-9']+")
+_TOKEN = re.compile(r"[a-z0-9£$']+")
 
 
 def tokenize(text):
@@ -17,6 +17,11 @@ def tokenize(text):
         t = t.strip("'")
         if not t:
             continue
+        if t[0] in "£$":
+            out.append("<money>")
+            t = t[1:]
+            if not t:
+                continue
         # long digit runs are phone numbers / short codes, the exact
         # value doesn't matter much
         if sum(c.isdigit() for c in t) >= 4:
@@ -72,3 +77,12 @@ class NaiveBayes:
 
     def predict(self, docs):
         return [self.predict_one(d) for d in docs]
+
+    def top_words(self, c, other, n=10):
+        """words with the biggest log-ratio P(w|c)/P(w|other)"""
+        ratios = [
+            (self.log_prob_word(w, c) - self.log_prob_word(w, other), w)
+            for w in self.vocab
+        ]
+        ratios.sort(reverse=True)
+        return [(w, round(r, 3)) for r, w in ratios[:n]]

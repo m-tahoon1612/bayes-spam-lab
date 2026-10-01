@@ -29,6 +29,8 @@ def main(argv=None):
     ap.add_argument("--alpha", type=float, default=1.0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--test-frac", type=float, default=0.25)
+    ap.add_argument("--top", type=int, default=0, help="show N most spammy words")
+    ap.add_argument("--errors", action="store_true", help="print misclassified test messages")
     ap.add_argument("--predict", metavar="TEXT")
     args = ap.parse_args(argv)
 
@@ -48,6 +50,17 @@ def main(argv=None):
     print(f"f1        {r['f1']:.3f}")
     print()
     print(format_confusion(r))
+
+    if args.errors:
+        print("\nmisclassified:")
+        for (d, t), p in zip(test, y_pred):
+            if t != p:
+                print(f"  [{t} -> {p}] {d}")
+
+    if args.top:
+        print("\nmost spammy tokens (log ratio):")
+        for w, s in model.top_words("spam", "ham", args.top):
+            print(f"  {w:<12} {s}")
 
 
 if __name__ == "__main__":

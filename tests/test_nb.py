@@ -19,6 +19,9 @@ class TokenizeTest(unittest.TestCase):
         # short numbers stay as they are
         self.assertEqual(tokenize("at 7"), ["at", "7"])
 
+    def test_money(self):
+        self.assertEqual(tokenize("£900"), ["<money>", "900"])
+
 
 class NaiveBayesTest(unittest.TestCase):
     def setUp(self):
