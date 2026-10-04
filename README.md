@@ -23,6 +23,7 @@ probabilities myself.
 python run.py                       # train on 75%, eval on 25% (seed 0)
 python run.py --alpha 0.1 --seed 3
 python run.py --errors --top 10     # misclassified messages + most spammy tokens
+python run.py --sweep               # alpha sweep, averaged over 10 seeds
 python run.py --predict "you have won a free prize, call now"
 python -m unittest discover -s tests
 ```
@@ -79,8 +80,19 @@ most spammy tokens (log ratio):
   ...
 ```
 
-Seed 0 happens to be one of the worse splits, seeds 1-3 give 0.96 / 0.89 / 0.89.
-With only 28 test messages one message is ~3.5% accuracy.
+Seed 0 happens to be one of the worse splits. With only 28 test messages one
+message is ~3.5% accuracy, so single runs jump around a lot. Averaged over 10
+seeds (`--sweep`):
+
+```
+ alpha     acc    prec     rec      f1   (mean of 10 seeds)
+  0.01  0.925   0.860   0.960   0.903
+   0.1  0.939   0.890   0.960   0.920
+   0.5  0.921   0.852   0.960   0.899
+   1.0  0.911   0.836   0.950   0.886
+   2.0  0.914   0.848   0.940   0.889
+   5.0  0.893   0.831   0.890   0.855
+```
 
 ## notes to self
 
@@ -89,7 +101,9 @@ With only 28 test messages one message is ~3.5% accuracy.
   slightly-spammy common words is enough to tip them. Real spam filters would
   care much more about false positives than this, so you'd want to shift the
   decision threshold (or weight the prior) instead of plain argmax.
-- TODO try different alpha values properly, over several seeds.
+- Smaller alpha did a bit better here. With a vocab of ~430 and alpha=1 the
+  smoothing mass is big compared to the actual counts, so it flattens
+  everything. Large alpha (5) clearly hurts recall.
 - Stratified split was needed, with a random split some seeds had only 5-6
   spam messages in test.
 - Didn't do stop word removal or bigrams. Might try bigrams some time.
